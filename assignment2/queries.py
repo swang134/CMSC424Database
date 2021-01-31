@@ -140,6 +140,12 @@ queries[11] = """
 ### Order by: countyname, statecode
 ### 0.50 pts
 queries[12] = """
+with temp as (select countyname, statecode, max(candidatevotes) as maxvotes
+        from pres_county_returns
+        where year = 2000
+        group by countyname, statecode)
+select *
+from temp t;
 """
 
 
@@ -155,6 +161,17 @@ queries[12] = """
 ### 0.50 pts
 queries[13] = """
 """
+queries[13] = """
+with temp1 as (select countyname, statecode, candidatevotes
+               from pres_county_returns
+               where partyname = 'democrat' and year = 2000),
+temp2 as (select countyname, statecode, candidatevotes
+          from pres_county_returns
+          where partyname = 'democrat' and year = 2016)
+select *
+from temp1;
+"""
+
 
 
 
