@@ -5,7 +5,10 @@ queries = ["" for i in range(0, 17)]
 ### Order by candidatename ascending
 ### 0.25 pts
 queries[0] = """
-select 0;
+select candidatename, partyname, candidatevotes
+from sen_state_returns
+where year = 2018 and statecode = 'MD' and specialelections = False
+order by candidatename asc;
 """
 
 ### 1. Report the number of votes for candidate 'Ben Cardin' across all the senate elections.
@@ -102,7 +105,7 @@ queries[9] = """
 ### HINT: Use "not in".
 ### Output Columns: countyname, statename
 ### Order by name, statecode ascending
-### 0.25 pts
+### 0.50 pts
 queries[10] = """
 """
 
@@ -116,7 +119,7 @@ queries[10] = """
 ### Use a left (or right) outer join to achive this.
 ### Output: countyname, statecode, candidatevotes, population_2010
 ### Order by: countyname, statecode ascending
-### 0.25 pts
+### 0.50 pts
 queries[11] = """
 """
 
@@ -135,7 +138,7 @@ queries[11] = """
 ### -- as provided, the query shows you the result of the "temp" table
 ### Output columns: countyname, statecode, candidatename
 ### Order by: countyname, statecode
-### 0.25 pts
+### 0.50 pts
 queries[12] = """
 """
 
@@ -149,7 +152,7 @@ queries[12] = """
 ### desired result.
 ### Output: statecode, countname2000, countyname2016, votes2000, votes2016
 ### Order by: statecode, countyname2000, countyname2016 ascending
-### 0.25 pts
+### 0.50 pts
 queries[13] = """
 """
 
