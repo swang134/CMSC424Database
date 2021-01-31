@@ -150,17 +150,15 @@ from temp t;
 
 
 ### 13. Let's create a table showing the vote differences between 2000 and 2016 for
-### the democratic presidential candidates. So the result should be four columns:
-###        statecode, countname2000, countyname2016,  votes2000, votes2016
+### the democratic presidential candidates. So the result should be six columns:
+###        statecode2000, statecode2016, countyname2000, countyname2016, votes2000, votes2016
 ### However, the list of counties is different, we want the other one to be set
 ### to None. We will do this through use of two temporary tables using WITH
 ### clause. You have to complete this query using a "full outer join" to get the 
 ### desired result.
-### Output: statecode, countname2000, countyname2016, votes2000, votes2016
-### Order by: statecode, countyname2000, countyname2016 ascending
+### Output: statecode2000, statecode2016, countyname2000, countyname2016, votes2000, votes2016
+### Order by: statecode2000, statecode2016, countyname2000, countyname2016 ascending
 ### 0.50 pts
-queries[13] = """
-"""
 queries[13] = """
 with temp1 as (select countyname, statecode, candidatevotes
                from pres_county_returns
