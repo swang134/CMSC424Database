@@ -39,7 +39,7 @@ queries[3] = """
 select 0;
 """
 
-### 4. Write a query to output for each state how many years ago it was admitted to the union. 
+### 4. Write a query to output for each state how many years prior to 2020 it was admitted to the union. 
 ### So if a state was admitted to the union in 1819, the answer would 201 (2020 - 1819). Ignore the specific dates.
 ### Output columns: name, admittedduration
 ### Order by admittedduration decreasing
