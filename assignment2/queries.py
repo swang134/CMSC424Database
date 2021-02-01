@@ -1,7 +1,7 @@
 queries = ["" for i in range(0, 17)]
 
 ### 0. Report the votes for the normal (i.e, not special) Senate Election in Maryland in 2018.
-### Output column order: candidatename, candidatevotes
+### Output column order: candidatename, partyname, candidatevotes
 ### Order by candidatename ascending
 ### 0.25 pts
 queries[0] = """
