@@ -94,6 +94,7 @@ select 0;
 ### Order by percentage of total vote increasing
 ### 0.25 pts
 queries[9] = """
+select 0;
 """
 
 
@@ -104,9 +105,10 @@ queries[9] = """
 ### Each county+state combination should only appear once in the output.
 ### HINT: Use "not in".
 ### Output Columns: countyname, statename
-### Order by name, statecode ascending
+### Order by countyname, statecode ascending
 ### 0.50 pts
 queries[10] = """
+select 0;
 """
 
 
@@ -121,6 +123,7 @@ queries[10] = """
 ### Order by: countyname, statecode ascending
 ### 0.50 pts
 queries[11] = """
+select 0;
 """
 
 
