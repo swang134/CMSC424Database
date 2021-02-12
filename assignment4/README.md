@@ -62,7 +62,7 @@ Save your query in  `queries.py` as the definition of `queryWilliam`.
 Include your explanation as a comment above this definition.
 
 ---
-## Part 2 (3 pt)**: [Trigger]
+## Part 2: Trigger (3 pt)
 
 Let's create a table `NumberOfFlightsTaken(customerid, customername,
 numflights)` to keep track of the total number of flights taken by each
