@@ -24,7 +24,7 @@ order by c.customerid;
 ```
 
 The result however does not contain the users whose name contains 'William' but who did
-not fly at all (e.g., `cust731`). So we may consider
+not fly at all (e.g., `cust733`). So we may consider
 modifying this query to use a left outer join instead, so we get those users as well:
 
 ```
@@ -44,7 +44,7 @@ The final answer should look like this:
 	cust728    | William Hill                   |     6
 	cust729    | William Jackson                |     6
 	cust730    | William Johnson                |     5
-	cust731    | William Lee                    |     0
+	cust731    | William Lee                    |     1
 	cust732    | William Lopez                  |     6
 	cust733    | William Martinez               |     0
 	cust734    | William Mitchell               |     6
