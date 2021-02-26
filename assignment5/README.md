@@ -142,7 +142,7 @@ database), but do so entirely through the **Peewee** ORM interface.
 You must add `.save(force_insert=True)` for new tuples or they will not be committed to the
 database.
 
-`clean-example.py` works as in the last party, and `./testORMpy`
+`clean-example.py` works as in the last party, and `./testORM.py`
 calls your `runOrm()` function.
 
 
