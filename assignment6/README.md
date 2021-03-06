@@ -18,7 +18,7 @@ Spark can be used with the Hadoop ecosystem, including the HDFS file system and 
 
 As before, we have provided a VagrantFile in the `assignment6` directory. Since the Spark distribution is large, we ask you to download that directly from the Spark website.
 
-1. Download the Spark package at http://spark.apache.org/downloads.html. We will use **Version 3.0.1, Pre-built for Hadoop 2.7 or later**.
+1. Download the Spark package at https://archive.apache.org/dist/spark/spark-3.0.1/ (other downloads [here](https://spark.apache.org/downloads.html)). We will use **Version 3.0.1, Pre-built for Hadoop 2.7 or later**.
 2. Move the downloaded file to the `assignment6/` directory (so it is available in '/vagrant' on the virtual machine), and uncompress it using:
 `tar zxvf spark-3.0.1-bin-hadoop2.7.tgz` in your VM.
 3. This will create a new directory: `spark-3.0.1-bin-hadoop2.7`.
