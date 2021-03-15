@@ -199,7 +199,7 @@ class BTreeBlock(Block):
 	# This function should return the updated key that will replace kprime in the parent
 	def redistributeWithBlock(self, otherBlock, kprime):
 		print("Redistributing entries between " + str(self) + " and " + str(otherBlock))
-		if self.isUnderful():
+		if self.isUnderfull():
 		    # Case 1: successor is underfull and is leaf
 		    if self.isLeaf:
 			# move the last ptr, key from the predecessor into the beginning of the successor block
