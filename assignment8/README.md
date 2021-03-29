@@ -30,6 +30,8 @@ Your task is to finish a few of the unfinished pieces in the `queryprocessing.py
 * (1.2pt) Functions in `GroupByAggregate` in `queryprocessing.py`: The GroupByAggregate handles 5 aggregation operators -- your task is to finish the implementation of three more: MEDIAN, MODE, and STDDEV. **Note that this is standard deviation for a sample, not a population.**
 * (2pt) Function `SetExcept.get_next()` in `queryprocessing.py`: Here you have to finish the implementation of the SetExcept operation.
 
+**You may not use the statistics module from python.**
+
 ### Submission
 You should submit modified `queryprocessing.py` files. We will test those in an automated fashion, using a set of test cases (on Gradescope).
 
