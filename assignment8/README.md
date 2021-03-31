@@ -1,4 +1,4 @@
-## Assignment 8: Query Processing, CMSC424, SPRING2021
+## Assignment 8: Query Processing, Due April 9, 2021
 
 *The assignment is to be done by yourself.*
 
