@@ -43,13 +43,20 @@ what locks the transaction currently holds, etc.
 
 #### `testing.py`
 
-This contains some code for testing. You should be able to run: `python3 testing.py` to get started. Note that the first time you run it, it will create the
-two files `relation1` and `logfile`, but after you kill it, the logfile will be inconsistent (we never write out CHECKPOINT
-records in normal course). So the second time you run it, it will error out since the restartRecovery code is not implemented. So if you want to work on the other
-two tasks, you should remove those two files every time.
-
-Currently the only way to stop testing.py is through killing it through Ctrl-C. If that doesn't work, try stopping it (Ctrl-Z), and then killing it using `kill %`.
-
+This contains some code for testing. You should be able to run: `python3 testingRecovery.py` to get started. Note that the program will use two files `relation1` and `logfile`. It will replace the original `logfile` with the modifications based on your restartRecovery() function. So make sure to copy `relation1` and `logfile` into sepearate files before running the code. Your workflow would be as follows:
+First time: 
+    ```
+        cp relation1 relation1_orig
+        cp logfile logfile_orig
+        python3 testingRecovery.py
+    ```
+Subsequent runs:
+    ```
+        cp relation1_orig relation1
+        cp logfile_orig logfile
+        python3 testingRecovery.py
+    ```
+The `_orig` files will contain the original data that your code needs to be tested on. 
 ### Your Task
 
 Your task is to finish a few of the unfinished pieces in the two files (1.5 points)
