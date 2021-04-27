@@ -43,19 +43,17 @@ what locks the transaction currently holds, etc.
 
 #### `testing.py`
 
-This contains some code for testing. You should be able to run: `python3 testingRecovery.py` to get started. Note that the program will use two files `relation1` and `logfile`. It will replace the original `logfile` with the modifications based on your restartRecovery() function. So make sure to copy `relation1` and `logfile` into sepearate files before running the code. Your workflow would be as follows:
-First time: 
-    ```
-        cp relation1 relation1_orig
-        cp logfile logfile_orig
-        python3 testingRecovery.py
-    ```
-Subsequent runs:
-    ```
-        cp relation1_orig relation1
-        cp logfile_orig logfile
-        python3 testingRecovery.py
-    ```
+This contains some code for testing. You should be able to run: `python3 testingRecovery.py` to get started. Note that the program will use two files `relation1` and `logfile`. It will replace the original `logfile` with the modifications based on your restartRecovery() function. So make sure to copy `relation1` and `logfile` into sepearate files before running the code. Your workflow would be as follows:  
+First time:  
+        `cp relation1 relation1_orig`\
+        `cp logfile logfile_orig`\
+        `python3 testingRecovery.py`
+
+Subsequent runs:  
+        `cp relation1_orig relation1`\
+        `cp logfile_orig logfile`\
+        `python3 testingRecovery.py`
+
 The `_orig` files will contain the original data that your code needs to be tested on. 
 ### Your Task
 
