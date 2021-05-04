@@ -64,6 +64,7 @@ You should submit modified `transactions.py` file to [Gradescope](https://www.gr
 You should not need to change anything any other files.
 
 ### Notes
+- Your snapshot only needs to store a single attribute for each tuple.
 
 <sup>1</sup>Thomson, A., Diamond, T., Weng, S. C., Ren, K., Shao, P., & Abadi, D. J. "Calvin: fast distributed transactions for partitioned database systems." *Proceedings of the 2012 ACM SIGMOD International Conference on Management of Data*. 2012.
 
