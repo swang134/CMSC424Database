@@ -37,6 +37,19 @@ this discrepancy to be apparent.
 
 ### Details.
 
+- Snapshot isolation requires reads to be satisfied by the snapshot of the db at
+transaction start. Define `takeSnapshot()` to save copies of the data items
+named in the readset. 
+- In order to ensure that reads see the snapshot we define new `getAttribute()` and
+  `setAttribute()` methods directly on transaction state, rather directly
+  on the corresponding disk functions as used before. This only affects the
+  methods in `exampleTransactions.pl`, so it should be transparent to you.
+- You will have to define (at least logically) three new pieces of transaction
+  state: the *snapshot*, a *write-buffer*, and a *writeset* (though this last
+  can be derived from the contents of the write-buffer.
+- Validation is done during transaction commit. Call `abortTransaction()` and
+  return if it fails. Push write-buffer contents to the database if it passes. 
+
 As in prior assignments, you will only have to write a small amount of
 code. Your changes will be confined to `transactions.py`, and *only* that file
 should be uploaded to gradescope.  Search for "SNAPSHOT_ISO" or "YOUR CODE
@@ -51,15 +64,6 @@ You should submit modified `transactions.py` file to [Gradescope](https://www.gr
 You should not need to change anything any other files.
 
 ### Notes
-- In order to buffer writes we define new `getAttribute()` and
-  `setAttribute()` methods directly on the transaction state, rather directly
-  on the corresponding disk functions used before. This only affects the
-  methods in `exampleTransactions.pl`, so it should be transparent to you.
-- You will have to define (at least logically) three new pieces of transaction
-  state: the *snapshot*, a *write-buffer*, and a *writeset* (though this last
-  can be derived from the contents of the write-buffer.
-- Validation is done during transaction commit. Call `abortTransaction()` and
-  return if it fails. Push write-buffer contents to the database if it passes. 
 
 <sup>1</sup>Thomson, A., Diamond, T., Weng, S. C., Ren, K., Shao, P., & Abadi, D. J. "Calvin: fast distributed transactions for partitioned database systems." *Proceedings of the 2012 ACM SIGMOD International Conference on Management of Data*. 2012.
 
