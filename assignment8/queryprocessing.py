@@ -128,11 +128,67 @@ class HashJoin(Operator):
 					for r in hashtable[key]:
 						output = list(l.t)
 						output.extend(list(r.t))
-						yield Tuple(None, output)
+						yield Tuple(None, output) 
 
 		#WRITE YOUR CODE FOR FULL OUTER JOIN HERE
 		elif self.jointype == self.FULL_OUTER_JOIN:
-			return None
+			# First, we load up all the tuples from the right input into the hash table
+			hashtable = dict()
+			hashtable1 = dict()
+			for r in self.right_child.get_next():
+				key = r.getAttribute(self.right_attribute)
+				if key in hashtable:
+					hashtable[r.getAttribute(self.right_attribute)].append(r)
+				else: 
+					hashtable[r.getAttribute(self.right_attribute)] = [r]
+			# First, we load up all the tuples from the left input into the hash table
+			for l in self.left_child.get_next():
+				key = l.getAttribute(self.left_attribute)
+				if key in hashtable1:
+					hashtable1[l.getAttribute(self.left_attribute)].append(l)
+				else: 
+					hashtable1[l.getAttribute(self.left_attribute)] = [l]
+
+			if len(hashtable) != 0: 
+				for l in self.left_child.get_next():
+					key = l.getAttribute(self.left_attribute)
+					if key in hashtable:
+						for r in hashtable[key]:
+							output = list(l.t)
+							output.extend(list(r.t))
+							yield Tuple(None, output) 
+					else: 
+						output = [] 
+						for n in range(len(self.right_child.relation.schema)):
+							output += [None]
+						output = list(l.t) + output
+						yield Tuple(None, output)
+			else: 
+				for l in self.left_child.get_next():
+					output = [] 
+					for n in range(len(self.left_child.relation.schema)):
+						output += [None]
+					output = list(l.t) + output
+					yield Tuple(None, output)
+
+			# Then, for each tuple in the left input, we look for matches and output those
+			# Using "yield" significantly simplifies this code
+			if len(hashtable1) != 0: 
+				for r in self.right_child.get_next():
+					key = r.getAttribute(self.right_attribute)
+					if key not in hashtable1: 
+						output = [] 
+						for n in range(len(self.left_child.relation.schema)):
+							output += [None]
+						output = output + list(r.t) 
+						yield Tuple(None, output)
+			else: 
+				for r in self.right_child.get_next():
+					output = [] 
+					for n in range(len(self.right_child.relation.schema)):
+						output += [None]
+					output = output + list(r.t)
+					yield Tuple(None, output)
 		else:
 			raise ValueError("This should not happen")
 
@@ -154,7 +210,7 @@ class GroupByAggregate(Operator):
 
 	@staticmethod
 	def initial_value(aggregate_function):
-		initial_values = [0, 0, None, None, None, None, None,None]
+		initial_values = [0, 0, None, None, None, None, None , None]
 		return initial_values[aggregate_function]
 
 	@staticmethod
@@ -181,14 +237,31 @@ class GroupByAggregate(Operator):
 				return (int(current_aggregate[0]) + 1, int(current_aggregate[1]) + int(new_value))
 		#YOUR CODE FOR MEDIAN GOES HERE
 		elif aggregate_function == GroupByAggregate.MEDIAN:
-			return None
+			if current_aggregate is None: 
+				return [float(new_value)]
+			else:
+				current_aggregate.append(float(new_value))
+				return current_aggregate
 		#YOUR CODE FOR MODE GOES HERE
 		elif aggregate_function == GroupByAggregate.MODE:
-			return None
+			if current_aggregate is None:
+				#first value as the counter of elements, second as the sum
+				return [(float(new_value),1)]
+			else:
+				for i in current_aggregate:
+					if i[0] == float(new_value): 
+						i = (i[0], i[1]+1)
+						return current_aggregate
+				current_aggregate.append((float(new_value),1))
+				return current_aggregate
+
 		#YOUR CODE FOR STDDEV GOES HERE
 		elif aggregate_function == GroupByAggregate.STDDEV:
-			return None
-		
+			if current_aggregate is None: 
+				return [float(new_value)]
+			else:
+				current_aggregate.append(float(new_value))
+				return current_aggregate
 		else:
 			raise ValueError("No such aggregate")
 
@@ -206,13 +279,48 @@ class GroupByAggregate(Operator):
 				return float(current_aggregate[1])/float(current_aggregate[0])
 		#YOUR CODE FOR MEDIAN GOES HERE
 		elif aggregate_function == GroupByAggregate.MEDIAN:
-			return None
+			if current_aggregate is None:
+				return None
+			elif len(current_aggregate) == 0: 
+				return None
+			else:
+				current_aggregate.sort()
+				i = int(len(current_aggregate)/2)
+				if len(current_aggregate)%2 == 0: 
+					return (current_aggregate[i-1] + current_aggregate[i])/2
+				else:
+					return current_aggregate[i]
+				
 		#YOUR CODE FOR MODE GOES HERE
 		elif aggregate_function == GroupByAggregate.MODE:
-			return None
+			if current_aggregate is None: 
+				return None
+			elif len(current_aggregate) == 0: 
+				return None 
+			else:
+				current_aggregate.sort()
+				counts = 0
+				for i in current_aggregate: 
+					if i[1] > counts: 
+						counts = i[1]
+				for i in current_aggregate: 
+					if i[1] == counts: 
+						return i[0]
+
 		#YOUR CODE FOR STDDEV GOES HERE
 		elif aggregate_function == GroupByAggregate.STDDEV:
-			return None
+			if current_aggregate is None:
+				return None
+			elif len(current_aggregate) == 0: 
+				return None 
+			else: 
+				total = len(current_aggregate)
+				tsum = sum(current_aggregate)
+				avg = float(tsum)/float(total)
+				ssum= 0.0
+				for i in current_aggregate: 
+					ssum = ssum + (float(i)- avg)**2
+				return math.sqrt(float(ssum)/float(total))
 
 		else:
 			raise ValueError("No such aggregate")
@@ -340,8 +448,41 @@ class SetExcept(Operator):
 			return
 
 		#YOUR CODE FOR SET EXCEPT GOES HERE
-		return None
+		else:
+			if len(self.left_child.relation.schema) == 0: 
+				yield (None, None)
+			elif len(self.right_child.relation.schema) == 0: 
+				output = self.left_child.get_next()
+				yield Tuple(None,output)
+			else: 
+				lkey = [] 
+				rkey = [] 
+				for l in self.left_child.get_next():
+					lkey.append(l.t) 
+				for r in self.right_child.get_next():
+					rkey.append(r.t)
 
+				if self.keep_duplicates is True: 
+					for k in lkey: 
+						if k in rkey: 
+							lkey.remove(k)
+							rkey.remove(k)
+					for k in lkey: 
+						if k in rkey: 
+							lkey.remove(k)
+					for result in lkey:
+						output = list(result)
+						yield Tuple(None,output)
+				else:
+					key = [] 
+					for k in lkey:
+						if k not in rkey:
+							key.append(k)
+					for result in key:
+						output = list(result)
+						yield Tuple(None,output)
+
+				
 		
 	# Typically you would close any open files etc.
 	def close(self):
