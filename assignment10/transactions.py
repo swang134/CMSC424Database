@@ -175,6 +175,36 @@ class LogManager:
 		# After the restart recovery is done (i.e., all the required changes redone, all the incomplete transactions
 		# undone, and all the pages have been written to disk), we can now write out a CHECKPOINT record to signify
 		# that the file contents are in a consistent state
+		with LogManager.logfile_lock:
+			f = open(LogManager.fileName, 'r')
+			allrecords = [LogManager.readLogRecord(line) for line in f.readlines()]
+			f.close()
+
+		undo = [] 
+		abortlist = [] 
+		for ids in allrecords: 
+			if ids.info[1] == "UPDATE": 
+				tup = Relation.getRelationByName(ids.info[2]).getTuple(ids.info[3])
+				tup.setAttribute(ids.info[4], ids.info[6])
+			elif ids.info[1] == "CLR": 
+				tup = Relation.getRelationByName(ids.info[2]).getTuple(ids.info[3])
+				tup.setAttribute(ids.info[4], ids.info[5])
+			elif ids.info[1] == "START":
+				undo.append(ids.info[0])
+			elif ids.info[1] == 'ABORT' or ids.info[1]== 'COMMIT': 
+				undo.remove(ids.info[0])
+
+		for ids in undo:
+			LogManager.revertChanges(ids)
+			LogManager.createAbortLogRecord(ids)
+
+		for ids in allrecords:  
+			if len(ids.info) >= 3 :
+				relation = Relation.getRelationByName(ids.info[2])
+				BufferPool.writeAllToDisk(relation)
+
+
+			
 		lr = LogRecord([-1, LogRecord.CHECKPOINT, list()])
 		LogManager.writeLogRecord(lr)
 
