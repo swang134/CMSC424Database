@@ -15,7 +15,7 @@ nobelRDD = sc.textFile("datafiles/prize.json")
 amazonBipartiteRDD = amazonInputRDD.map(lambda x: x.split(" ")).map(lambda x: (x[0], x[1])).distinct()
 
 
-### Task 1
+""" ### Task 1
 print("=========================== Task 1")
 task1_result = task1(amazonInputRDD)
 for x in task1_result.takeOrdered(10):
@@ -24,7 +24,7 @@ for x in task1_result.takeOrdered(10):
 ### Task 2
 print("=========================== Task 2")
 task2_result = nobelRDD.map(json.loads).flatMap(task2_flatmap).distinct()
-print(task2_result.takeOrdered(10))
+print(task2_result.takeOrdered(10)) """
 
 #### Task 3
 print("=========================== Task 3")
@@ -32,7 +32,7 @@ task3_result = task3(logsRDD, ['01/Jul/1995', '02/Jul/1995'])
 for x in task3_result.takeOrdered(10):
 	print(x)
 
-#### Task 4
+""" #### Task 4
 print("=========================== Task 4")
 task4_result = task4(logsRDD, '01/Jul/1995', '02/Jul/1995')
 for x in task4_result.takeOrdered(10):
@@ -42,7 +42,7 @@ for x in task4_result.takeOrdered(10):
 print("=========================== Task 5")
 task5_result = task5(playRDD)
 for x in task5_result.takeOrdered(10):
-	print(x)
+	print(x) """
 
 #### Task 6 -- we will start with a non-empty currentMatching and do a few iterations
 # print("=========================== Task 6")
@@ -55,3 +55,4 @@ for x in task5_result.takeOrdered(10):
 # print(f"Found {res2.count()} edges to add to the matching")
 # print(res2.takeOrdered(100))
 # currentMatching = currentMatching.union(res2)
+
