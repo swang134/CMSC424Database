@@ -222,8 +222,8 @@ class TransactionState:
     def __init__(self):
         self.transaction_id = TransactionManager.startTransaction()
         self.locks = list()
-        self.mode = TransactionState.SERIALIZABLE
-
+        self.dic = {}
+        self.buffer = []
         # set up per-transaction storage for SNAPSHOT_ISO
         # YOUR CODE HERE
 
@@ -234,12 +234,14 @@ class TransactionState:
     # for SNAPSHOT_ISO
     def takeSnapshot(self, rel, attr, reads):
         # YOUR CODE HERE
+        for r in reads: 
+            self.dic[(attr,r)] = rel.getTuple(r).getAttribute(attr)
 
     def getAttribute(self, rel, id, attr):
         # modify for SNAPSHOT_ISO
         if self.mode == TransactionState.SNAPSHOT_ISO:
             # YOUR CODE HERE
-
+            return self.dic[(attr,id)]
         tup = rel.getTuple(id)
         return tup.getAttribute(attr)
     
@@ -249,10 +251,12 @@ class TransactionState:
         # print "SET ATTRIBUTE {}, id {}, attr {}, k {}".format(rel, id, attr, newval)
         if self.mode == TransactionState.SNAPSHOT_ISO:
             # YOUR CODE HERE
-
+            self.buffer.append((rel,id,attr,newval))
+            return
         tup = rel.getTuple(id)
         tup.setAttribute(attr, newval)
         print("trans {} WRITING {}/{} for id {}".format(self.transaction_id, attr, newval, id))
+        return
 
     def abortTransaction(self):
         print("Aborting transaction {}".format(self.transaction_id))
@@ -264,10 +268,14 @@ class TransactionState:
 
     # return true if committed
     def commitTransaction(self):
-        print("Committing transaction {}, wb: {}".format(self.transaction_id, self.writeBuffer))
         if self.mode == TransactionState.SNAPSHOT_ISO:
             # YOUR CODE HERE
-                
+            for (rel,id,attr,newval) in self.buffer: 
+                if self.dic[(attr,id)] != rel.getTuple(id).getAttribute(attr): 
+                    return False 
+            for (rel,id,attr,newval) in self.buffer: 
+                rel.getTuple(id).setAttribute(attr, newval)
+
         for [objectid, locktype] in reversed(self.locks):
             LockTable.releaseLock(self.transaction_id, objectid, locktype)
         return True
