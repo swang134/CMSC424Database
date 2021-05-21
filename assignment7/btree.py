@@ -200,23 +200,48 @@ class BTreeBlock(Block):
 	def redistributeWithBlock(self, otherBlock, kprime):
 		print("Redistributing entries between " + str(self) + " and " + str(otherBlock))
 		if self.isUnderfull():
-		    # Case 1: successor is underfull and is leaf
-		    if self.isLeaf:
+			# Case 1: successor is underfull and is leaf
+			if self.isLeaf:
 			# move the last ptr, key from the predecessor into the beginning of the successor block
-
-		    # Case 2: successor is underfull and is not leaf
-		    else:
+				len1 = len(otherBlock.keysAndPointers)-2
+				len2 = len(otherBlock.keysAndPointers)-3
+				self.keysAndPointers.insert(0, otherBlock.keysAndPointers[len1])
+				self.keysAndPointers.insert(0, otherBlock.keysAndPointers[len2])
+				otherBlock.keysAndPointers.pop(-2)
+				otherBlock.keysAndPointers.pop(-2)
+				return self.keysAndPointers[1]
+			# Case 2: successor is underfull and is not leaf
+			else:
 			# move the last ptr, key from predecessor to successor, similar to above
-			# update the moved ptr's parent by calling (ptr.getBlock().parent = ???)
+			# update the moved ptr's parent by calling (ptr.getBlock().parent =??)
+				self.keysAndPointers.insert(0,kprime)
+				self.keysAndPointers.insert(0,otherBlock.keysAndPointers[len(otherBlock.keysAndPointers)-1])
+				pkey = otherBlock.keysAndPointers[len(otherBlock.keysAndPointers)-2]
+				otherBlock.keysAndPointers[len(otherBlock.keysAndPointers)-1].getBlock().parent = self
+				otherBlock.keysAndPointers.pop(-1)
+				otherBlock.keysAndPointers.pop(-1)
+				return pkey
 
 		else:
-		    # Case 3: predecessor is underfull and is leaf
-		    if otherBlock.isLeaf:
+			# Case 3: predecessor is underfull and is leaf
+			if otherBlock.isLeaf:
 			# symmetrical to Case 1
+				otherBlock.keysAndPointers.insert(len(otherBlock.keysAndPointers)-1, self.keysAndPointers[0])
+				otherBlock.keysAndPointers.insert(len(otherBlock.keysAndPointers)-1, self.keysAndPointers[1])
+				self.keysAndPointers.pop(0)
+				self.keysAndPointers.pop(0)
+				return self.keysAndPointers[1]
 
-		    # Case 4: predecessor is underfull and is not leaf
-		    else:
+			# Case 4: predecessor is underfull and is not leaf
+			else:
 			# symmetrical to Case 2
+				otherBlock.keysAndPointers.insert(len(self.keysAndPointers), kprime)
+				otherBlock.keysAndPointers.insert(len(self.keysAndPointers), self.keysAndPointers[0])
+				pkey = self.keysAndPointers[1]
+				self.keysAndPointers[0].getBlock().parent = otherBlock
+				self.keysAndPointers.pop(0)
+				self.keysAndPointers.pop(0)
+				return pkey
 
 
 	def isUnderfull(self):
