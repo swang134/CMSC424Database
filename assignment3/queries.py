@@ -4,7 +4,10 @@ queries = ["" for i in range(0, 16)]
 ### Output column order: candidatename, candidatevotes
 ### Order by candidatename ascending
 queries[0] = """
-select 0;
+select candidatename, candidatevotes
+from sen_state_returns
+where year = 2018 and statecode = 'MD' and specialelections = False
+order by candidatename asc;
 """
 
 ### 1. Write a query to find the maximum, minimum, and average population in 2010 across all states.
@@ -13,14 +16,17 @@ select 0;
 ### Output Columns: max_population, min_population, avg_population
 ### Order by: none
 queries[1] = """
-select 0;
+select max(population_2010), min(population_2010), TRUNC(avg(population_2010),0) from states;
 """
 
 ### 2. Write a query to print the candidate with the maximum votes in the 2008 MI Senate Election. 
 ### Output Column: candidatename
 ### Order by: none
 queries[2] = """
-select 0;
+select candidatename
+from sen_state_returns
+where candidatevotes= (select max(candidatevotes) from sen_state_returns where year = 2008 and statecode = 'MI');
+
 """
 
 ### 3. Write a query to find the number of candidates who are listed in the sen_state_returns table for each senate election held in 2018. 
@@ -29,7 +35,11 @@ select 0;
 ### Output columns: statecode, specialelections, numcandidates
 ### Order by: statecode, specialelections
 queries[3] = """
-select 0;
+select statecode, specialelections, count(*)
+from sen_state_returns
+where year = 2018
+group by statecode, specialelections
+Order by statecode, specialelections asc;
 """
 
 ### 4. Write a query to find, for the 2008 elections, the number of counties where Barack Obama received strictly more votes 
@@ -38,7 +48,10 @@ select 0;
 ### Output columns: num_counties
 ### Order by: none
 queries[4] = """
-select 0;
+SELECT count(*)
+FROM pres_county_returns a, pres_county_returns b
+WHERE a.countyname = b. countyname and a.statecode = b.statecode and a.year = b.year and a.candidatename = 'Barack Obama' 
+and b.candidatename = 'John McCain' and a.candidatevotes > b.candidatevotes and a.year = 2008;
 """
 
 
@@ -47,7 +60,12 @@ select 0;
 ### Output columns: statename, num_counties
 ### Order by: statename
 queries[5] = """
-select 0;
+SELECT states.name as statename, COUNT(counties.*)
+FROM counties
+join states on counties.statecode = states.statecode
+GROUP BY counties.statecode, statename
+HAVING COUNT(counties.*) >= 100
+ORDER BY statename ASC;
 """
 
 ### 6. Print for all states:
@@ -60,7 +78,12 @@ select 0;
 ### Output columns: statecode, total_votes_2008, total_votes_2012
 ### Order by: statecode
 queries[6] = """
-select 0;
+SELECT statecode, sum(case when candidatename = 'Barack Obama'and year = 2008 then candidatevotes else 0 end),
+ sum(case when candidatename = 'Barack Obama'and year = 2012 then candidatevotes else 0 end) 
+FROM pres_county_returns
+GROUP BY statecode
+ORDER by statecode;
+
 """
 
 ### 7. Create a listing to show the disparity between the populations listed in 'states' table and those listed in 'counties' table for 1950 and 2010.
@@ -70,14 +93,25 @@ select 0;
 ### Output columns: statename, disparity_1950, disparity_2010
 ### Order by statename
 queries[7] = """
-select 0;
+SELECT states.name, states.population_1950 - sum(counties.population_1950) ,
+states.population_2010 - sum(counties.population_2010) 
+FROM states 
+JOIN counties on counties.statecode = states.statecode
+GROUP BY
+    states.statecode
+HAVING 
+   states.population_1950 - sum(counties.population_1950) != 0 or states.population_2010 - sum(counties.population_2010) != 0 
+ORDER BY states.name;
 """
 
 ### 8. Use 'EXISTS' or 'NOT EXISTS' to find the states where no counties have population in 2010 above 500000 (500 thousand).
 ### Output columns: statename
 ### Order by statename
 queries[8] = """
-select 0;
+SELECT name
+FROM states
+WHERE NOT EXISTS (SELECT statecode FROM counties WHERE states.statecode = counties.statecode AND population_2010 > 500000)
+order by name;
 """
 
 ### 9. List the first 10 county names (alphabetically) that are used multiple times. 
@@ -85,7 +119,13 @@ select 0;
 ### Output columns: name
 ### Order by name
 queries[9] = """
-select 0;
+SELECT name  
+    FROM 
+    (SELECT name, count(name) as Counter 
+     FROM counties
+     GROUP BY name) AS tbl WHERE Counter >= 2
+     Order by name asc
+     FETCH FIRST 10 ROWS ONLY;
 """
 
 ### 10. Use Set Intersection to find the counties that Barack Obama lost in 2008, but won in 2012.
@@ -93,7 +133,36 @@ select 0;
 ### Output columns: countyname, statecode
 ### Order by countyname, statecode
 queries[10] = """
-select 0;
+with temp1 as (select countyname, statecode, max(candidatevotes) as maxvotes
+        from pres_county_returns
+        where year = 2008
+        group by countyname, statecode
+        HAVING max(candidatevotes) > 0),
+temp2 as (select countyname, statecode, max(candidatevotes) as maxvotes
+        from pres_county_returns
+        where year = 2012
+        group by countyname, statecode
+        HAVING max(candidatevotes) > 0)
+
+(SELECT temp1.countyname, temp1.statecode
+FROM temp1
+JOIN pres_county_returns ON pres_county_returns.candidatevotes = temp1.maxvotes 
+AND pres_county_returns.countyname = temp1.countyname AND pres_county_returns.statecode = temp1.statecode
+WHERE  pres_county_returns.candidatename != 'Barack Obama' and pres_county_returns.year = 2008
+GROUP BY temp1.countyname, temp1.statecode)
+
+INTERSECT
+
+(SELECT temp2.countyname, temp2.statecode
+FROM temp2
+JOIN pres_county_returns ON pres_county_returns.candidatevotes = temp2.maxvotes 
+AND pres_county_returns.countyname = temp2.countyname AND pres_county_returns.statecode = temp2.statecode
+WHERE  pres_county_returns.candidatename = 'Barack Obama' and pres_county_returns.year = 2012
+GROUP BY temp2.countyname, temp2.statecode)
+
+ORDER BY countyname, statecode; 
+
+
 """
 
 
@@ -105,7 +174,16 @@ select 0;
 ### Output columns: candidatename
 ### Order by: candidatename
 queries[11] = """
-select 0;
+SELECT candidatename
+FROM pres_county_returns
+
+EXCEPT
+
+SELECT candidatename
+FROM sen_state_returns
+
+Order by candidatename;
+
 """
 
 
@@ -118,7 +196,16 @@ select 0;
 ### month should take values: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
 ### Order by: month_no
 queries[12] = """
-select 0;
+with temp1 as (select * from (values(1, 'Jan'), (2, 'Feb'),(3,'Mar'), (4, 'Apr'), (5,'May'), (6,'Jun'), (7,'Jul'), (8,'Aug'), (9,'Sep'),
+         (10,'Oct'), (11,'Nov'), (12,'Dec')) as x (month_no, monthname)),
+     temp2 as (select Extract(month from admitted_to_union) as month from states)
+
+select temp2.month, temp1.monthname, count(temp2.month)
+from temp2
+join temp1 on temp1.month_no= temp2.month
+group by temp2.month, temp1.monthname
+order by temp2.month
+;
 """
 
 
@@ -128,7 +215,12 @@ select 0;
 ### Output columns: none
 ### Order by: none
 queries[13] = """
-select 0;
+
+
+CREATE VIEW pres_state_votes AS
+SELECT year, pres_county_returns.statecode, candidatename, partyname, sum(candidatevotes) as candidatevotes
+FROM pres_county_returns
+Group by year, pres_county_returns.statecode, candidatename, partyname;
 """
 
 ### 14. Use a natural join to list the presidential candidate who got the most votes for each year where votes were cast, sorted by increasing year.
@@ -136,7 +228,19 @@ select 0;
 ### Output columns: year, candidatename
 ### Order by: year
 queries[14] = """
-select 0;
+with temp1 as (select year, candidatename, sum(candidatevotes) as sumvotes
+        from pres_county_returns
+        group by year, candidatename), 
+     temp2 as (select year, max(sumvotes) as maxvotes
+        from temp1
+        group by year )
+
+SELECT year, candidatename
+FROM temp1
+natural join temp2
+Where temp1.year = temp2.year and sumvotes = maxvotes 
+Order by year;
+
 """
 
 ### 15. Print a table of states s.t. the party that won that state is the same each presidential election.
@@ -145,7 +249,20 @@ select 0;
 ### Output columns: state, party
 ### Order by: state
 queries[15] = """
-select 0;
+
+with temp1 as (select year, statecode, max(candidatevotes)as maxvote from pres_state_votes 
+                group by year, statecode),
+temp2 as (select partyname, count(partyname) as partycount, temp1.statecode, (select count(*) from (select count(*) from pres_state_votes group by year) as count) as co  
+        from pres_state_votes 
+        join temp1 on pres_state_votes.year = temp1.year and 
+        pres_state_votes.candidatevotes = maxvote and pres_state_votes.statecode = temp1.statecode
+        group by temp1.statecode, partyname)
+select name, partyname 
+from temp2 
+join states on states.statecode = temp2.statecode
+where temp2.partycount = co
+order by name;
+
+
+
 """
-
-
