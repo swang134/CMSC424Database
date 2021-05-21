@@ -16,7 +16,10 @@ order by candidatename asc;
 ### Order by candidatevotes increasing
 ### 0.25 pts
 queries[1] = """
-select 0;
+select year, statecode, specialelections, candidatevotes 
+from sen_state_returns
+where candidatename = 'Ben Cardin' 
+order by candidatevotes;
 """
 
 
@@ -27,7 +30,10 @@ select 0;
 ### Order output by precentincrease increasing
 ### 0.25 pts
 queries[2] = """
-select 0;
+select name, statecode, TRUNC(((population_2010 * 100 - population_1950 * 100)/ population_1950),0) AS percentincrease
+from counties
+where population_1950 != 0 
+order by percentincrease asc;
 """
 
 ### 3. Select all the "distinct" party names that senate candidates have been affiliated over all
@@ -36,7 +42,9 @@ select 0;
 ### Order output by partyname ascending
 ### 0.25 pts
 queries[3] = """
-select 0;
+select DISTINCT partyname
+from sen_state_returns
+order by partyname asc;
 """
 
 ### 4. Write a query to output for each state how many years prior to 2020 it was admitted to the union. 
@@ -45,7 +53,9 @@ select 0;
 ### Order by admittedduration decreasing
 ### 0.25 pts
 queries[4] = """
-select 0;
+select name, 2020 - EXTRACT(year FROM admitted_to_union) AS year
+from states
+order by year desc;
 """
 
 ### 5. Write a query to find the states where the increase in population from 1900 to 1950 was lower than the increase in population from 2000 to 2010.
@@ -53,11 +63,14 @@ select 0;
 ### Order by: name increasing
 ### 0.25 pts
 queries[5] = """
-select 0;
+select name
+from states
+where (population_1950  - population_1900)  < (population_2010  - population_2000)
+order by name asc;
 """
 
 ### 6. Write a query to find all candidates for senate who satisfy one of the following conditions:
-###        - the candidate is a 'democrat' and has more than 750000 votes in Alabama.
+###        - the candidate is a 'democrat' and has more than 750,000 votes in Alabama.
 ###        - the candidate is a 'republican' and has more 1,000,000 votes in Maryland.
 ###        - the candidate is neither a democrat or nor a republican and has more than 500,000 votes (in any state).
 ### Some candidates appear under multiple party names. Ignore that for now (in other words, if a democrat has 700,000 votes in AL as a 'democrat' and
@@ -66,7 +79,10 @@ select 0;
 ### Output columns: year, statecode, specialelections, candidatename, partyname
 ### 0.25 pts
 queries[6] = """
-select 0;
+select year, statecode, specialelections, candidatename, partyname
+from sen_state_returns
+where (partyname = 'democrat' and candidatevotes >750000 and statecode = 'AL') or (partyname = 'republican' and candidatevotes >1000000 and statecode = 'MD') or (partyname != 'republican' and partyname != 'democrat' and candidatevotes >500000)
+;
 """
 
 
@@ -76,7 +92,10 @@ select 0;
 ### Order first by statename, then by countyname, increasing
 ### 0.25 pts
 queries[7] = """
-select 0;
+select states.name AS statename, states.population_2010 AS statepopulation, counties.name AS countyname, counties.population_2010 AS countypopulation
+from counties
+join states on counties.statecode = states.statecode
+order by statename , countyname asc;
 """
 
 ### 8. Write a query to join the tables states and counties to find the counties that had over
@@ -85,16 +104,23 @@ select 0;
 ### Order by statename, then by countyname, increasing
 ### 0.25 pts
 queries[8] = """
-select 0;
+select states.name AS statename, counties.name AS countyname
+from counties
+join states on counties.statecode = states.statecode and counties.population_2010 *2 > states.population_2010
+order by statename , countyname asc;
 """
 
 
 ### 9. Write a query to join sen_state_returns and sen_elections to find the candidates that received 70% or more of the total vote.
 ### Output columns: year, statecode, specialelections, candidatename
-### Order by percentage of total vote increasing
+### Order by percentage of total vote, increasing
 ### 0.25 pts
 queries[9] = """
-select 0;
+select sen_state_returns.year, sen_state_returns.statecode, sen_state_returns.specialelections, sen_state_returns.candidatename
+from sen_state_returns
+join sen_elections on sen_elections.year = sen_state_returns.year and sen_elections.statecode = sen_state_returns.statecode
+and sen_elections.specialelections = sen_state_returns.specialelections and sen_elections.totalvotes *7 < sen_state_returns.candidatevotes *10
+order by (sen_state_returns.candidatevotes*100 / sen_elections.totalvotes) asc;
 """
 
 
@@ -108,7 +134,11 @@ select 0;
 ### Order by countyname, statecode ascending
 ### 0.50 pts
 queries[10] = """
-select 0;
+select DISTINCT pres_county_returns.countyname as countyname, states.name as statename
+from pres_county_returns
+join states on pres_county_returns.statecode = states.statecode 
+WHERE CONCAT(countyname, pres_county_returns.statecode) NOT IN (SELECT CONCAT(name, statecode) FROM counties)
+order by countyname, statename asc;
 """
 
 
@@ -123,7 +153,11 @@ select 0;
 ### Order by: countyname, statecode ascending
 ### 0.50 pts
 queries[11] = """
-select 0;
+select pres_county_returns.countyname, pres_county_returns.statecode, pres_county_returns.candidatevotes, counties.population_2010
+from pres_county_returns
+left outer join counties on CONCAT(pres_county_returns.countyname, pres_county_returns.statecode) = CONCAT(counties.name,counties.statecode)
+WHERE pres_county_returns.year = 2012 and pres_county_returns.candidatename = 'Barack Obama'
+order by pres_county_returns.countyname, pres_county_returns.statecode asc;
 """
 
 
@@ -147,8 +181,11 @@ with temp as (select countyname, statecode, max(candidatevotes) as maxvotes
         from pres_county_returns
         where year = 2000
         group by countyname, statecode)
-select *
-from temp t;
+
+select pres_county_returns.countyname, pres_county_returns.statecode, pres_county_returns.candidatename
+from pres_county_returns
+join temp on CONCAT(pres_county_returns.countyname, pres_county_returns.statecode) = CONCAT(temp.countyname,temp.statecode)
+order by pres_county_returns.countyname, pres_county_returns.statecode asc;
 """
 
 
@@ -169,8 +206,12 @@ with temp1 as (select countyname, statecode, candidatevotes
 temp2 as (select countyname, statecode, candidatevotes
           from pres_county_returns
           where partyname = 'democrat' and year = 2016)
-select *
-from temp1;
+
+select temp1.statecode as statecode2000, temp2.statecode as statecode2016, temp1.countyname as countyname2000, temp2.countyname as countyname2016,
+ temp1.candidatevotes as votes2000, temp2.candidatevotes as votes2016
+from temp1
+full outer join temp2 on CONCAT(temp1.statecode, temp1.countyname) = CONCAT(temp2.statecode,temp2.countyname)
+order by statecode2000, statecode2016, countyname2000, countyname2016 asc;
 """
 
 
@@ -179,7 +220,8 @@ from temp1;
 ### 14. Write a statement to add a new column to the counties table called 'pop_trend' of type 'string'.
 ### 0.25 pts
 queries[14] = """
-select 0;
+ALTER TABLE counties
+ADD pop_trend varchar(255);
 """
 
 ### 15. The values for the above added column with be empty to begin with. Write an update statement to 
@@ -188,7 +230,12 @@ select 0;
 ### Use CASE statement to make this easier.
 ### 0.25 pts
 queries[15] = """
-select 0;
+UPDATE counties SET pop_trend = 
+CASE 
+      WHEN population_2010 <= population_1950 THEN 'decreased'
+      WHEN population_2010 <= 2*population_1950  THEN 'increased somewhat'
+      ELSE 'increased a lot'
+END
 """
 
 
@@ -197,5 +244,7 @@ select 0;
 ### queries after this delete.
 ### 0.25 pts
 queries[16] = """
-select 0;
+DELETE FROM pres_county_returns
+WHERE
+    partyname != 'democrat' and partyname != 'republican';
 """
