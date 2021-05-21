@@ -2,7 +2,7 @@ from disk_relations import *
 import threading
 from threading import Thread
 import time
-
+from collections import defaultdict
 #######################################################################################################
 # Locking Stuff
 #######################################################################################################
@@ -20,7 +20,7 @@ class LockTable:
 	IX = 3
 
 	# Compatibility matrix
-	compatibility_list = [(IS, IS), (IS, S), (S, IS), (S, S)]
+	compatibility_list = [(IS, IS), (IS, S), (S, IS), (S, S), (IX,IS), (IS, IX), (IX,IX)]
 	
 	@staticmethod
 	def areCompatible(ltype1, ltype2):
@@ -46,7 +46,9 @@ class LockTable:
 
 		# Return the list of transactions to be aborted (empty if none)
 		abortList = []
-		
+		for f in waiting_transactions_and_locks_list: 
+			if f[0] > transaction_id:
+				abortList.append(f[0])
 		return abortList
 
 
@@ -112,6 +114,19 @@ class LockTable:
 			if not e.current_transactions_and_locks:
 				cond.notifyAll()
 
+	def dfs(ID, currentwait, traveled, total, idLst):    
+		if ID not in traveled: 
+			traveled.append(ID)
+			total.append(ID)
+
+			for c in currentwait[ID]:
+					if c not in traveled:
+							LockTable.dfs(c, currentwait, traveled, total, idLst)
+					elif c in total:
+							idLst.append(ID)
+					
+		total.remove(ID)
+		return idLst
 	@staticmethod
 	def detectDeadlocksAndChooseTransactionsToAbort():
 		############################################
@@ -126,9 +141,28 @@ class LockTable:
 		############################################
 
 		# Return the list of transactions to be aborted (empty if none)
+		currentwait =  defaultdict(list)
+		traveled = [] 
+		id_lst = [] 
+		with LockTable.hashtable_lock:
+			# create the hashtable 
+			for ID in LockTable.lockhashtable:
+				total = LockTable.lockhashtable[ID]
+
+				# go over the wait transaction list 
+				for w in total.waiting_transactions_and_locks:
+					currentwait[ID].append(w[0])
+
+				# go over the current transaction list 
+				for c in total.current_transactions_and_locks:
+					currentwait[ID].append(c[0])
 		
-		
-		return []
+		while set(traveled) != set(currentwait.keys()):
+			for i in list(currentwait):
+				if i not in traveled:
+					LockTable.dfs(i, currentwait, traveled, [], id_lst)
+
+		return list(set(id_lst))
 
 	@staticmethod
 	def detectDeadlocks():
@@ -196,7 +230,10 @@ class TransactionState:
 		return [relation.fileName, LockTable.S] in self.locks or self.getLock(relation.fileName, LockTable.S)
 
 	def getXLockTuple(self, relation, primary_id):
-		return [relation.fileName, LockTable.X] in self.locks or self.getLock(relation.fileName, LockTable.X)
+		if [relation.fileName, LockTable.IX] not in self.locks and [relation.fileName, LockTable.X] not in self.locks:
+			return self.getLock(relation.fileName, LockTable.IX) and self.getLock(primary_id, LockTable.X)
+		else:
+			return self.getLock(primary_id, LockTable.X)
 
 	def getSLockTuple(self, relation, primary_id):
 		if [relation.fileName, LockTable.IS] not in self.locks and [relation.fileName, LockTable.S] not in self.locks:
